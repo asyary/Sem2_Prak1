@@ -1,4 +1,4 @@
-4
+7
 Asyary Raihan Haryono
 012345
 18 3 2001
@@ -19,3 +19,18 @@ Sugeng Pangestu
 21 2 1999
 L
 Ga tau
+Sugeng2 Pangestu
+02131
+21 2 1999
+L
+Ga tau2
+Sugeng3 Pangestu
+02132
+21 2 1999
+L
+Ga tau3
+Sugeng4 Pangestu
+02133
+21 2 1999
+L
+Ga tau4

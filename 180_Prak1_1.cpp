@@ -163,9 +163,28 @@ string idGen(Node* supir) {
 	int entahApalah = (supir->data.tglLahir.day % 10) + (supir->data.tglLahir.month % 10) + (supir->data.tglLahir.year % 10);
 	entahApalah = entahApalah % 9;
 	gen += to_string(entahApalah);
-	// It's like 11.40 am, I've been coding for like 14 hours, ga sempet bikin digit ke-5
-	// I'll update it on my GitHub repo
-	gen += "0";
+	// There's an inefficient way, O(n^2) based on N(N+1)/2 to just iterate each id (check if exists)
+	// Also, ga dijelasin boleh/ngga ID yang pernah ada, dihapus, digunakan kembali (asumsi no)
+	// Here goes nothing
+	Node* iterateNode = head; // I just realized ini single bukan double, can't go backwards
+	Node* latestOcc = NULL;
+	do {
+		string checkID = iterateNode->data.id;
+		checkID = checkID.substr(0, 4);
+		if (checkID == gen) {
+			latestOcc = iterateNode;
+		}
+		iterateNode = iterateNode->next;
+	} while (iterateNode != head);
+	if (latestOcc == NULL) {
+		gen += "0";
+	} else {
+		string latestOccID = latestOcc->data.id;
+		latestOccID = latestOccID.erase(0, 4);
+		int latestID = stoi(latestOccID);
+		latestID += 1;
+		gen += to_string(latestID);
+	}
 	return gen;
 }
 
@@ -333,6 +352,7 @@ void tambahSupir() {
 	string id = idGen(newSupir);
 	newSupir->data.id = id;
 	tail->next = newSupir;
+	tail = newSupir;
 	newSupir->next = head;
 	totalSupir++;
 	updateDB();
