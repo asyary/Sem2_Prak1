@@ -278,7 +278,7 @@ void cariDataSupir() { // wrong, ga diminta begini
 	system("cls");
 	Node* cariSupir = cariDataSupirHandler(idCari);
 	if (cariSupir == NULL) {
-		cout << "Supir tidak ditemukan!\n";
+		cout << "ERROR: Supir tidak ditemukan!\n";
 		system("pause");
 		return menu(ADMIN_MENU);
 	} else {
@@ -289,7 +289,51 @@ void cariDataSupir() { // wrong, ga diminta begini
 	}
 }
 
+void userMenu() {
+	// Just copy paste
+	Node* helperNode = head;
+	if (isEmpty()) {
+		cout << "ERROR: Data supir kosong!\n";
+		system("pause");
+		return menu(MAIN_MENU);
+	}
+	while (true) {
+		system("cls");
+		printSupir(helperNode);
+		cout << "\n\n1. Next\n2. Previous\n3. Order\n0. Exit\n> ";
+		char pil = '\0';
+		pil = optionHandler();
+		switch (pil) {
+			case '1':
+				helperNode = helperNode->next;
+				break;
+			case '2':
+				helperNode = helperNode->prev;
+				break;
+			case '3':
+				cout << "Fitur belum tersedia!\n\n";
+				system("pause");
+				break;
+			case '0':
+				return menu(MAIN_MENU);
+			case '\0':
+				return;
+			
+			default:
+				cout << "Pilihan invalid!\n";
+				system("pause");
+				break;
+		}
+	}
+}
+
 void ingpoDataSupir() {
+	system("cls");
+	if (isEmpty()) {
+		cout << "ERROR: Data supir kosong!\n";
+		system("pause");
+		return menu(ADMIN_MENU);
+	}
 	Node* helperNode = head;
 	while (true) {
 		system("cls");
@@ -330,7 +374,7 @@ void hapusSupir() {
 	system("cls");
 	Node* cariSupir = cariDataSupirHandler(idCari);
 	if (cariSupir == NULL) {
-		cout << "Supir tidak ditemukan!\n";
+		cout << "ERROR: Supir tidak ditemukan!\n";
 		system("pause");
 		return menu(ADMIN_MENU);
 	} else {
@@ -350,6 +394,94 @@ void hapusSupir() {
 		}
 		return menu(ADMIN_MENU);
 	}
+}
+
+void ubahSupir() { // Konotasinya kayak supirnya ganti
+	system("cls");
+	if (isEmpty()) {
+		cout << "ERROR: Data supir kosong!\n";
+		system("pause");
+		return menu(ADMIN_MENU);
+	}
+	string id;
+	cout << "Masukkan ID supir yang ingin diubah > ";
+	cin >> id;
+	Node* iniSupir = cariDataSupirHandler(id);
+	if (iniSupir == NULL) {
+		cout << "\nERROR: Supir tidak ditemukan!\n\n";
+		system("pause");
+		return menu(ADMIN_MENU);
+	}
+	system("cls");
+	cout << "- Mengubah Supir Dengan ID " << id << " -\n" <<
+	"1. Ubah Nama\n2. Ubah Kelamin\n3. Ubah Alamat\n4. Ubah Tgl Lahir\n> ";
+	char pil = '\0';
+	pil = optionHandler();
+	system("cls");
+	cout << "Jangan keluar sebelum proses selesai!\n";
+	switch (pil) {
+		case '1': {
+			string namaBaru;
+			cout << "Masukkan nama baru > ";
+			cin.ignore();
+			getline(cin, namaBaru);
+			iniSupir->data.nama = namaBaru;
+			string idBaru = idGen(iniSupir);
+			iniSupir->data.id = idBaru;
+			break;
+		}
+		case '2': {
+			char newGender;
+			cout << "Masukkan kelamin baru > "; // Hah? Gimana gimana?
+			cin >> newGender;
+			if (newGender != 'L' && newGender != 'l' && newGender != 'P' && newGender != 'p') {
+				cout << "Gender tidak valdi!\n";
+				system("pause");
+				return menu(ADMIN_MENU);
+			}
+			iniSupir->data.kelamin = newGender;
+			string idBaru = idGen(iniSupir);
+			iniSupir->data.id = idBaru;
+			break;
+		}
+		case '3' : {
+			string alamatBaru;
+			cout << "Masukkan alamat baru > ";
+			cin.ignore();
+			getline(cin, alamatBaru);
+			iniSupir->data.nama = alamatBaru; // Doesn't need new ID
+			break;
+		}
+		case '4' : {
+			string tglLahirBaru;
+			cout << "Masukkan tgl lahir baru (dd/mm/yyyy) > ";
+			cin >> tglLahirBaru;
+			Date lahiran = dateSplitter(tglLahirBaru, '/');
+			if (!lahiran.validate()) {
+				cout << "Tanggal lahir tidak valdi!\n";
+				system("pause");
+				return menu(ADMIN_MENU);
+			}
+			iniSupir->data.tglLahir = lahiran;
+			string idBaru = idGen(iniSupir);
+			iniSupir->data.id = idBaru;
+			break;
+		}
+		case '\0':
+			return;
+		
+		default:
+			cout << "Pilihan invalid!\n";
+			system("pause");
+			return menu(ADMIN_MENU);
+			break;
+	}
+	updateDB();
+	cout << "Data telah diubah!\n";
+	printSupir(iniSupir);
+	cout << "\n\n";
+	system("pause");
+	return menu(ADMIN_MENU);
 }
 
 void tambahSupir() {
@@ -401,7 +533,7 @@ void menu(MenuType pilMenu) {
 	switch (pilMenu) {
 		case MAIN_MENU: {
 			cout << "====================\n  SELAMAT DATANG !\n====================\n";
-			cout << "1. Masuk Sebagai Admin\n2. Masuk Sebagai User\n> ";
+			cout << "1. Masuk Sebagai Admin\n2. Masuk Sebagai User\n0. Exit\n> ";
 			char pil = '\0';
 			pil = optionHandler();
 			switch (pil) {
@@ -411,6 +543,9 @@ void menu(MenuType pilMenu) {
 				case '2':
 					menu(USER_MENU);
 					break;
+				case '0':
+					exit(0);
+					return;
 				case '\0':
 					return;
 				
@@ -435,6 +570,9 @@ void menu(MenuType pilMenu) {
 				case '2':
 					hapusSupir();
 					break;
+				case '3':
+					ubahSupir();
+					break;
 				case '4':
 					tambahSupir();
 					break;
@@ -451,9 +589,9 @@ void menu(MenuType pilMenu) {
 			}}
 			break;
 
-		case USER_MENU: {
-			cout << "Ingpo-ingpo-ingpokan cuy (gatau mau diisi apa)";
-			}
+		case USER_MENU:
+				userMenu();
+				break;
 	}
 }
 
@@ -464,9 +602,7 @@ void quit() {
 
 void init() {
 	initDB();
-	// printSupir(head);
 	menu(MAIN_MENU);
-	// cout << ((head->next->next->next) == head);
 }
 
 int main() {
