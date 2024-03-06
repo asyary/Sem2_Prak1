@@ -48,7 +48,8 @@ struct Supir {
 struct Node {
 	Supir data;
 	Node* next {NULL}; // null default member init
-}; // note: this would be single circular
+	Node* prev {NULL};
+}; // change to double circular
 Node* head = NULL;
 Node* tail = NULL;
 int totalSupir;
@@ -92,10 +93,13 @@ void initDB() {
 			head = user;
 			tail = user;
 			head->next = head;
+			head->prev = head;
 		} else {
 			tail->next = user;
+			user->prev = tail;
 			tail = user;
 			user->next = head;
+			head->prev = user;
 		} // some confusing stuff, whatever
 	}
 	baca.close();
@@ -166,16 +170,17 @@ string idGen(Node* supir) {
 	// There's an inefficient way, O(n^2) based on N(N+1)/2 to just iterate each id (check if exists)
 	// Also, ga dijelasin boleh/ngga ID yang pernah ada, dihapus, digunakan kembali (asumsi no)
 	// Here goes nothing
-	Node* iterateNode = head; // I just realized ini single bukan double, can't go backwards
+	Node* iterateNode = tail;
 	Node* latestOcc = NULL;
 	do {
 		string checkID = iterateNode->data.id;
 		checkID = checkID.substr(0, 4);
 		if (checkID == gen) {
 			latestOcc = iterateNode;
+			break;
 		}
-		iterateNode = iterateNode->next;
-	} while (iterateNode != head);
+		iterateNode = iterateNode->prev;
+	} while (iterateNode != tail);
 	if (latestOcc == NULL) {
 		gen += "0";
 	} else {
@@ -250,6 +255,7 @@ void hapusDataSupirHandler(Node* nodeHapus) {
 				tail = nodeCari;
 			}
 			nodeCari->next = nodeHapus->next;
+			nodeHapus->next->prev = nodeCari;
 			delete nodeHapus;
 			totalSupir = totalSupir - 1;
 			return;
@@ -296,7 +302,7 @@ void ingpoDataSupir() {
 				helperNode = helperNode->next;
 				break;
 			case '2':
-
+				helperNode = helperNode->prev;
 				break;
 			case '0':
 				return menu(ADMIN_MENU);
@@ -380,6 +386,7 @@ void tambahSupir() {
 	string id = idGen(newSupir);
 	newSupir->data.id = id;
 	tail->next = newSupir;
+	head->prev = newSupir;
 	tail = newSupir;
 	newSupir->next = head;
 	totalSupir++;
@@ -423,6 +430,7 @@ void menu(MenuType pilMenu) {
 			switch (pil) {
 				case '1':
 					// cariDataSupir(); wrong
+					ingpoDataSupir();
 					break;
 				case '2':
 					hapusSupir();
@@ -430,6 +438,8 @@ void menu(MenuType pilMenu) {
 				case '4':
 					tambahSupir();
 					break;
+				case '0':
+					return menu(MAIN_MENU);
 				case '\0':
 					return;
 				
