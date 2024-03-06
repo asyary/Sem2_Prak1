@@ -259,7 +259,7 @@ void hapusDataSupirHandler(Node* nodeHapus) {
 	} while (nodeCari != head);
 }
 
-void cariDataSupir() {
+void cariDataSupir() { // wrong, ga diminta begini
 	system("cls");
 	if (isEmpty()) {
 		cout << "ERROR: Data supir kosong!\n";
@@ -280,6 +280,34 @@ void cariDataSupir() {
 		cout << "\n\n";
 		system("pause");
 		return menu(ADMIN_MENU);
+	}
+}
+
+void ingpoDataSupir() {
+	Node* helperNode = head;
+	while (true) {
+		system("cls");
+		printSupir(helperNode);
+		cout << "\n\n1. Next\n2. Previous\n0. Exit\n> ";
+		char pil = '\0';
+		pil = optionHandler();
+		switch (pil) {
+			case '1':
+				helperNode = helperNode->next;
+				break;
+			case '2':
+
+				break;
+			case '0':
+				return menu(ADMIN_MENU);
+			case '\0':
+				return;
+			
+			default:
+				cout << "Pilihan invalid!\n";
+				system("pause");
+				break;
+		}
 	}
 }
 
@@ -394,7 +422,7 @@ void menu(MenuType pilMenu) {
 			pil = optionHandler();
 			switch (pil) {
 				case '1':
-					cariDataSupir();
+					// cariDataSupir(); wrong
 					break;
 				case '2':
 					hapusSupir();
@@ -419,6 +447,11 @@ void menu(MenuType pilMenu) {
 	}
 }
 
+void quit() {
+	system("cls");
+	cout << "Done ngabsku";
+}
+
 void init() {
 	initDB();
 	// printSupir(head);
@@ -427,14 +460,8 @@ void init() {
 }
 
 int main() {
+	atexit(quit);
 	init();
-	// Node* bantu = new Node;
-	// bantu = head;
-	// do {
-	// 	cout << bantu->data.id << "\n";
-	// 	bantu = bantu->next;
-	// } while (bantu != head);
-	// cout << head->next->next->next->data.nama;
 
 	return 0;
 }
