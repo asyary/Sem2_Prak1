@@ -170,6 +170,10 @@ string idGen(Node* supir) {
 	// There's an inefficient way, O(n^2) based on N(N+1)/2 to just iterate each id (check if exists)
 	// Also, ga dijelasin boleh/ngga ID yang pernah ada, dihapus, digunakan kembali (asumsi no)
 	// Here goes nothing
+	if (isEmpty()) {
+		gen += "0";
+		return gen;
+	}
 	Node* iterateNode = tail;
 	Node* latestOcc = NULL;
 	do {
@@ -517,10 +521,17 @@ void tambahSupir() {
 	newSupir->data.alamat = alamat;
 	string id = idGen(newSupir);
 	newSupir->data.id = id;
-	tail->next = newSupir;
-	head->prev = newSupir;
-	tail = newSupir;
-	newSupir->next = head;
+	if (isEmpty()) {
+		head = newSupir;
+		tail = newSupir;
+		head->next = newSupir;
+		head->prev = newSupir;
+	} else {
+		tail->next = newSupir;
+		head->prev = newSupir;
+		tail = newSupir;
+		newSupir->next = head;
+	}
 	totalSupir++;
 	updateDB();
 	cout << "\nData berhasil ditambahkan!\n";
