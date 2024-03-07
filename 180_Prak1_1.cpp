@@ -16,7 +16,7 @@ struct Date { // kurma
 	int day {0};
 	int month {0};
 	int year {0};
-	int validate() { // males kalo validasinya di bawah
+	bool validate() { // males kalo validasinya di bawah
 		if ((year < 1900 || year > 2024) || (month < 1 || month > 12) || (day < 1 || day > jumlahHari(month))) {
 			return false;
 		}
