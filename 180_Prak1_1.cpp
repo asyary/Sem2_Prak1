@@ -177,6 +177,9 @@ string idGen(Node* supir) {
 	Node* iterateNode = tail;
 	Node* latestOcc = NULL;
 	do {
+		if (iterateNode == supir) {
+			continue;
+		}
 		string checkID = iterateNode->data.id;
 		checkID = checkID.substr(0, 4);
 		if (checkID == gen) {
@@ -453,7 +456,7 @@ void ubahSupir() { // Konotasinya kayak supirnya ganti
 			cout << "Masukkan alamat baru > ";
 			cin.ignore();
 			getline(cin, alamatBaru);
-			iniSupir->data.nama = alamatBaru; // Doesn't need new ID
+			iniSupir->data.alamat = alamatBaru; // Doesn't need new ID
 			break;
 		}
 		case '4' : {
