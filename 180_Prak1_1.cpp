@@ -201,7 +201,7 @@ void deqOrder(bool isAcc) {
 	ofstream tulis("./data/" + filename, ios::app);
 	tulis << orderHead->data.id << "\n" << orderHead->data.nama << "\n" <<
 	orderHead->data.supir << "\n" << orderHead->data.platNomor << "\n" <<
-	orderHead->data.tujuan;
+	orderHead->data.tujuan << "\n\n"; // currently don't care how the data will be read
 	NodeOrder* del = orderHead;
 	orderHead = orderHead->next;
 	delete del;
@@ -463,12 +463,45 @@ void orderHandler(Node* supir) {
 
 void prosesPesanan() {
 	system("cls");
+	if (isOrderEmpty()) {
+		cout << "Tidak ada pesanan!\n";
+		system("pause");
+		return menu(ADMIN_MENU);
+	}
 	cout << "==== Pesanan ke-" << orderKeN << " ====\n\n";
 	// Start from head, as always
 	NodeOrder* currentNode = orderHead;
 	cout << "ID\t\t: " << currentNode->data.id << "\nNama\t\t: " << currentNode->data.nama << "\nSupir\t\t: " <<
-	currentNode->data.nama << "\nPlat nomor\t: " << currentNode->data.platNomor << "\nTujuan\t\t: " <<
-	currentNode->data.tujuan << "\n\n1. Accept\n2. Reject\n3. Exit";
+	currentNode->data.supir << "\nPlat nomor\t: " << currentNode->data.platNomor << "\nTujuan\t\t: " <<
+	currentNode->data.tujuan << "\n\n1. Accept\n2. Reject\n3. Exit\n> ";
+	char pil = '\0';
+	pil = optionHandler();
+	string currentID = currentNode->data.id;
+	switch (pil) {
+		case '1':
+			deqOrder(true);
+			cout << "Pesanan dengan ID " + currentID + " telah diterima!\n";
+			system("pause");
+			return prosesPesanan();
+			break;
+		case '2':
+			deqOrder(false);
+			cout << "Pesanan dengan ID " + currentID + " telah ditolak!\n";
+			system("pause");
+			return prosesPesanan();
+			break;
+		case '3':
+			menu(ADMIN_MENU);
+			break;
+		case '\0':
+			return;
+		
+		default:
+			cout << "Pilihan invalid!\n";
+			system("pause");
+			return prosesPesanan();
+			break;
+	}
 }
 
 void userMenu() {
