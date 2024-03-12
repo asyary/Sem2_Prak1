@@ -566,6 +566,7 @@ void hapusSupir() {
 	if (cariSupir == NULL) {
 		cout << "ERROR: Supir tidak ditemukan!\n";
 		system("pause");
+		cin.ignore();
 		return menu(ADMIN_MENU);
 	} else {
 		cout << "\nSupir dengan data berikut akan dihapus:\n";
@@ -600,6 +601,7 @@ void ubahSupir() { // Konotasinya kayak supirnya ganti
 	if (iniSupir == NULL) {
 		cout << "\nERROR: Supir tidak ditemukan!\n\n";
 		system("pause");
+		cin.ignore();
 		return menu(ADMIN_MENU);
 	}
 	system("cls");
@@ -627,6 +629,7 @@ void ubahSupir() { // Konotasinya kayak supirnya ganti
 			if (newGender != 'L' && newGender != 'l' && newGender != 'P' && newGender != 'p') {
 				cout << "Gender tidak valdi!\n";
 				system("pause");
+				cin.ignore();
 				return menu(ADMIN_MENU);
 			}
 			iniSupir->data.kelamin = newGender;
@@ -650,6 +653,7 @@ void ubahSupir() { // Konotasinya kayak supirnya ganti
 			if (!lahiran.validate()) {
 				cout << "Tanggal lahir tidak valdi!\n";
 				system("pause");
+				cin.ignore();
 				return menu(ADMIN_MENU);
 			}
 			iniSupir->data.tglLahir = lahiran;
@@ -687,6 +691,7 @@ void tambahSupir() {
 	if (!lahiran.validate()) {
 		cout << "Tanggal lahir tidak valdi!\n";
 		system("pause");
+		cin.ignore();
 		return menu(ADMIN_MENU);
 	}
 	cout << "Kelamin (L/P)          : ";
@@ -694,6 +699,7 @@ void tambahSupir() {
 	if (gender != 'L' && gender != 'l' && gender != 'P' && gender != 'p') {
 		cout << "Gender tidak valdi!\n";
 		system("pause");
+		cin.ignore();
 		return menu(ADMIN_MENU);
 	}
 	cout << "Alamat                 : ";
