@@ -69,7 +69,7 @@ struct NodeOrder {
 };
 NodeOrder* orderHead = NULL;
 NodeOrder* orderTail = NULL;
-int totalOrder, ordAcc, ordRej;
+int totalOrder, ordAcc, ordRej, orderKeN;
 
 enum MenuType {
 	MAIN_MENU,
@@ -136,6 +136,7 @@ void updateDB() {
 		"\n" << helperNode->data.kelamin << "\n" << helperNode->data.alamat << "\n"; // wew
 		helperNode = helperNode->next;
 	} while (helperNode != head);
+	tulis.close();
 }
 
 void initOrderDB() {
@@ -145,6 +146,7 @@ void initOrderDB() {
 		return exit(0); // Waduh
 	}
 	baca >> totalOrder; // kalo total = 0 head nya udah null
+	baca >> orderKeN;
 	for (int i = 0; i < totalOrder; i++) {
 		// Urutan: id -> nama -> supir (nama) -> plat -> tujuan
 		NodeOrder* order = new NodeOrder;
@@ -157,11 +159,9 @@ void initOrderDB() {
 		if (i == 0) {
 			orderHead = order;
 			orderTail = order;
-			orderHead->next = orderHead;
 		} else {
 			orderTail->next = order;
 			orderTail = order;
-			order->next = orderHead;
 		}
 	}
 	baca.close();
@@ -169,7 +169,7 @@ void initOrderDB() {
 
 void updateOrderDB() {
 	ofstream tulis("./data/order.txt", ios::trunc);
-	tulis << totalOrder << "\n";
+	tulis << totalOrder << "\n" << orderKeN << "\n";
 	NodeOrder* helperNode = orderHead;
 	if (isOrderEmpty()) {
 		return;
@@ -177,13 +177,21 @@ void updateOrderDB() {
 	do {
 		tulis << helperNode->data.id << "\n" << helperNode->data.nama << "\n" <<
 		helperNode->data.supir << "\n" << helperNode->data.platNomor << "\n" <<
-		helperNode->data.tujuan;
-	} while (helperNode != orderHead);
+		helperNode->data.tujuan << "\n";
+		helperNode = helperNode->next;
+	} while (helperNode != NULL);
+	tulis.close();
 }
 
 void enqOrder(NodeOrder* newOrder) {
-	orderTail->next = newOrder;
-	orderTail = newOrder; // somehow seems too simple...
+	if (isOrderEmpty()) {
+		orderHead = newOrder;
+		orderTail = newOrder;
+	} else {
+		orderTail->next = newOrder;
+		orderTail = newOrder; // somehow seems too simple...
+	}
+	totalOrder++;
 	updateOrderDB();
 }
 
@@ -197,6 +205,9 @@ void deqOrder(bool isAcc) {
 	NodeOrder* del = orderHead;
 	orderHead = orderHead->next;
 	delete del;
+	totalOrder--;
+	orderKeN++; // add this every dequeue
+	tulis.close();
 	updateOrderDB();
 }
 
@@ -289,8 +300,36 @@ string idGen(Node* supir) {
 	return gen;
 }
 
-string idOrderGen(NodeOrder* order) {
-
+string idOrderGen(NodeOrder* order, string supirId) {
+	// Btw, id can be > 10 digits karena id supir ga selalu 5 digits
+	string gen;
+	string plat = order->data.platNomor;
+	string tujuan = order->data.tujuan;
+	string nama = order->data.nama;
+	for (char &c : plat) {
+		c = tolower(c);
+	}
+	for (char &c : tujuan) {
+		c = tolower(c);
+	}
+	int firstCh = plat.front() - 'a' + 1;
+	gen += (to_string(firstCh).length() == 1 ? "0" + to_string(firstCh) : to_string(firstCh));
+	gen += supirId;
+	// Beware that this would result in an error kalo tujuan < 2 letters
+	int lastTuj = tujuan.back() - 'a' + 1;
+	tujuan.pop_back();
+	int ingpokanNamingConvention = tujuan.back() - 'a' + 1;
+	int hasil = lastTuj + ingpokanNamingConvention;
+	gen += (to_string(hasil).length() == 1 ? "0" + to_string(hasil) : to_string(hasil));
+	int hasilNama;
+	for (char c : nama) { // dam this operator is op
+		if (!isalpha(c)) {
+			continue;
+		}
+		hasilNama += tolower(c) - 'a' + 1;
+	}
+	gen += to_string(hasilNama % 10);
+	return gen;
 }
 
 void printSupir(Node* nodeSupir) {
@@ -389,6 +428,49 @@ void cariDataSupir() { // wrong, ga diminta begini
 	}
 }
 
+void orderHandler(Node* supir) {
+	system("cls");
+	string nama, tujuan;
+	cout << "==== Order ====\n\nMasukkan nama pelanggan\t> ";
+	getline(cin, nama);
+	cout << "Tujuan pelanggan\t> ";
+	getline(cin, tujuan);
+	if (tujuan.length() < 2) {
+		cout << "ERROR: Tujuan tidak valdi!\n";
+		system("pause");
+		return;
+	}
+	NodeOrder* newOrder = new NodeOrder;
+	newOrder->data.nama = nama;
+	newOrder->data.tujuan = tujuan;
+	newOrder->data.supir = supir->data.nama;
+	string orderId = idOrderGen(newOrder, supir->data.id); // ew, unclean args
+	newOrder->data.id = orderId;
+	enqOrder(newOrder);
+	system("cls");
+	cout << "==== Order ====\n\nOrder telah dilakukan!\n";
+	cout << "ID\t\t: " << orderId << "\nNama\t\t: " << nama << "\nSupir\t\t: " <<
+	supir->data.nama << "\nPlat nomor\t: " << newOrder->data.platNomor << "\nTujuan\t\t: " <<
+	tujuan << "\nIngin melakukan order lagi? (Y/N) > "; // I couldn't care less, just format it here
+	char pil = '\0';
+	pil = optionHandler();
+	if (pil == 'Y' || pil == 'y') {
+		orderHandler(supir);
+	} else if (pil == 'N' || pil == 'n') {
+		menu(USER_MENU);
+	}
+}
+
+void prosesPesanan() {
+	system("cls");
+	cout << "==== Pesanan ke-" << orderKeN << " ====\n\n";
+	// Start from head, as always
+	NodeOrder* currentNode = orderHead;
+	cout << "ID\t\t: " << currentNode->data.id << "\nNama\t\t: " << currentNode->data.nama << "\nSupir\t\t: " <<
+	currentNode->data.nama << "\nPlat nomor\t: " << currentNode->data.platNomor << "\nTujuan\t\t: " <<
+	currentNode->data.tujuan << "\n\n1. Accept\n2. Reject\n3. Exit";
+}
+
 void userMenu() {
 	// Just copy paste
 	Node* helperNode = head;
@@ -411,8 +493,7 @@ void userMenu() {
 				helperNode = helperNode->prev;
 				break;
 			case '3':
-				cout << "Fitur belum tersedia!\n\n";
-				system("pause");
+				orderHandler(helperNode);
 				break;
 			case '0':
 				return menu(MAIN_MENU);
@@ -666,7 +747,7 @@ void menu(MenuType pilMenu) {
 
 		case ADMIN_MENU: {
 			cout << "==== Dashboard Admin ====\n\n1. Mencari Data Supir\n" <<
-			"2. Menghapus Data Supir\n3. Mengubah Data Supir\n4. Menambah Data Supir\n0. Exit\n> ";
+			"2. Menghapus Data Supir\n3. Mengubah Data Supir\n4. Menambah Data Supir\n5. Proses Pesanan\n0. Exit\n> ";
 			char pil = '\0';
 			pil = optionHandler();
 			switch (pil) {
@@ -682,6 +763,9 @@ void menu(MenuType pilMenu) {
 					break;
 				case '4':
 					tambahSupir();
+					break;
+				case '5':
+					prosesPesanan();
 					break;
 				case '0':
 					return menu(MAIN_MENU);
@@ -709,6 +793,7 @@ void quit() {
 
 void init() {
 	initDB();
+	initOrderDB();
 	menu(MAIN_MENU);
 }
 
