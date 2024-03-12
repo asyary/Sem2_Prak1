@@ -5,7 +5,7 @@
 #include <cmath>
 using namespace std;
 
-// GitHub repo (otw) https://github.com/asyary/Sem2_Prak1
+// GitHub repo https://github.com/asyary/Sem2_Prak1
 
 // I can't help the urge to point out that siapapun developer monster
 // yang beneran bikin aplikasi dengan ID serumit dan se-tidak-efisien
@@ -45,6 +45,14 @@ struct Supir {
 	string alamat;
 };
 
+struct Order {
+	string id; // you know the gist
+	string nama;
+	string supir; // why don't u just use supir struct? prolly unnecessary
+	string platNomor {"L 1996 YZ"}; // why doe? ga sekalian sama kemaren adja T-T
+	string tujuan;
+};
+
 struct Node {
 	Supir data;
 	Node* next {NULL}; // null default member init
@@ -53,6 +61,15 @@ struct Node {
 Node* head = NULL;
 Node* tail = NULL;
 int totalSupir;
+
+// add node for order
+struct NodeOrder {
+	Order data;
+	NodeOrder* next {NULL}; // null default member init
+};
+NodeOrder* orderHead = NULL;
+NodeOrder* orderTail = NULL;
+int totalOrder, ordAcc, ordRej;
 
 enum MenuType {
 	MAIN_MENU,
@@ -63,6 +80,7 @@ enum MenuType {
 // Prototype
 void menu(MenuType pilMenu);
 bool isEmpty();
+bool isOrderEmpty();
 
 char optionHandler() {
 	char pil;
@@ -120,8 +138,78 @@ void updateDB() {
 	} while (helperNode != head);
 }
 
+void initOrderDB() {
+	// lemme just, uh, ctrl+c ctrl+v real quick
+	ifstream baca("./data/order.txt");
+	if (baca.fail()) {
+		return exit(0); // Waduh
+	}
+	baca >> totalOrder; // kalo total = 0 head nya udah null
+	for (int i = 0; i < totalOrder; i++) {
+		// Urutan: id -> nama -> supir (nama) -> plat -> tujuan
+		NodeOrder* order = new NodeOrder;
+		baca >> order->data.id;
+		baca.ignore();
+		getline(baca, order->data.nama);
+		getline(baca, order->data.supir);
+		getline(baca, order->data.platNomor);
+		getline(baca, order->data.tujuan);
+		if (i == 0) {
+			orderHead = order;
+			orderTail = order;
+			orderHead->next = orderHead;
+		} else {
+			orderTail->next = order;
+			orderTail = order;
+			order->next = orderHead;
+		}
+	}
+	baca.close();
+}
+
+void updateOrderDB() {
+	ofstream tulis("./data/order.txt", ios::trunc);
+	tulis << totalOrder << "\n";
+	NodeOrder* helperNode = orderHead;
+	if (isOrderEmpty()) {
+		return;
+	}
+	do {
+		tulis << helperNode->data.id << "\n" << helperNode->data.nama << "\n" <<
+		helperNode->data.supir << "\n" << helperNode->data.platNomor << "\n" <<
+		helperNode->data.tujuan;
+	} while (helperNode != orderHead);
+}
+
+void enqOrder(NodeOrder* newOrder) {
+	orderTail->next = newOrder;
+	orderTail = newOrder; // somehow seems too simple...
+	updateOrderDB();
+}
+
+void deqOrder(bool isAcc) {
+	// don't forget to check if empty BEFORE calling the func
+	string filename = (isAcc ? "accepted.txt" : "rejected.txt");
+	ofstream tulis("./data/" + filename, ios::app);
+	tulis << orderHead->data.id << "\n" << orderHead->data.nama << "\n" <<
+	orderHead->data.supir << "\n" << orderHead->data.platNomor << "\n" <<
+	orderHead->data.tujuan;
+	NodeOrder* del = orderHead;
+	orderHead = orderHead->next;
+	delete del;
+	updateOrderDB();
+}
+
 bool isEmpty() {
 	if (head == NULL) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool isOrderEmpty() {
+	if (orderHead == NULL) {
 		return true;
 	} else {
 		return false;
@@ -182,6 +270,7 @@ string idGen(Node* supir) {
 		}
 		string checkID = iterateNode->data.id;
 		checkID = checkID.substr(0, 4);
+		// Don't bother changing ID gen implementation, whatever lah
 		if (checkID == gen) {
 			latestOcc = iterateNode;
 			break;
@@ -198,6 +287,10 @@ string idGen(Node* supir) {
 		gen += to_string(latestID);
 	}
 	return gen;
+}
+
+string idOrderGen(NodeOrder* order) {
+
 }
 
 void printSupir(Node* nodeSupir) {
