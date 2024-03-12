@@ -404,30 +404,6 @@ void hapusDataSupirHandler(Node* nodeHapus) {
 	} while (nodeCari != head);
 }
 
-void cariDataSupir() { // wrong, ga diminta begini
-	system("cls");
-	if (isEmpty()) {
-		cout << "ERROR: Data supir kosong!\n";
-		system("pause");
-		return menu(ADMIN_MENU);
-	}
-	cout << "==== Mencari Data Supir ====\n\nMasukkan ID Supir\n> ";
-	string idCari;
-	cin >> idCari;
-	system("cls");
-	Node* cariSupir = cariDataSupirHandler(idCari);
-	if (cariSupir == NULL) {
-		cout << "ERROR: Supir tidak ditemukan!\n";
-		system("pause");
-		return menu(ADMIN_MENU);
-	} else {
-		printSupir(cariSupir);
-		cout << "\n\n";
-		system("pause");
-		return menu(ADMIN_MENU);
-	}
-}
-
 void orderHandler(Node* supir) {
 	system("cls");
 	string nama, tujuan;
