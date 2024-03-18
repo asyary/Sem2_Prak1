@@ -2,8 +2,7 @@
 
 Praktikum 1 Semester 2\
 Membuat mockup taxi online\
-[Link GitHub Repo](https://github.com/asyary/Sem2_Prak1/)\
-<br>
+[Link GitHub Repo](https://github.com/asyary/Sem2_Prak1/)
 
 ## Installation
 
