@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <algorithm>
 #include <cmath>
+#include <regex>
 using namespace std;
 
 // GitHub repo https://github.com/asyary/Sem2_Prak1
@@ -49,8 +50,14 @@ struct Order {
 	string id; // you know the gist
 	string nama;
 	string supir; // why don't u just use supir struct? prolly unnecessary
-	string platNomor {"L 1996 YZ"}; // why doe? ga sekalian sama kemaren adja T-T
+	string platNomor;
 	string tujuan;
+};
+
+struct Mobil {
+	string platNomor;
+	string jenisMobil;
+	string brandMobil;
 };
 
 struct Node {
@@ -71,6 +78,15 @@ NodeOrder* orderHead = NULL;
 NodeOrder* orderTail = NULL;
 int totalOrder, ordAcc, ordRej, orderKeN;
 
+struct NodeMobil {
+	Mobil data;
+	NodeMobil* next {NULL}; // yada yada
+	NodeMobil* prev {NULL};
+}; // let's do double linear, why not
+NodeMobil* mobilHead = NULL;
+NodeMobil* mobilTail = NULL;
+int totalMobil;
+
 enum MenuType {
 	MAIN_MENU,
 	ADMIN_MENU,
@@ -81,6 +97,7 @@ enum MenuType {
 void menu(MenuType pilMenu);
 bool isEmpty();
 bool isOrderEmpty();
+bool isMobilEmpty();
 
 char optionHandler() {
 	char pil;
@@ -183,6 +200,48 @@ void updateOrderDB() {
 	tulis.close();
 }
 
+void initMobilDB() {
+	// literal ctrl+c ctrl+v all over again
+	ifstream baca("./data/mobil.txt");
+	if (baca.fail()) {
+		return exit(0); // Waduh
+	}
+	baca >> totalMobil; // kalo total = 0 head nya udah null
+	baca.ignore(); // took me way too long to figure out this bug, I'm getting rusty
+	for (int i = 0; i < totalMobil; i++) {
+		// Urutan: plat -> jenis -> brand
+		NodeMobil* iniMobil = new NodeMobil;
+		getline(baca, iniMobil->data.platNomor);
+		getline(baca, iniMobil->data.jenisMobil);
+		getline(baca, iniMobil->data.brandMobil);
+		if (i == 0) {
+			mobilHead = iniMobil;
+			mobilTail = iniMobil;
+		} else {
+			mobilTail->next = iniMobil;
+			iniMobil->prev = mobilTail;
+			mobilTail = iniMobil;
+		}
+	}
+	baca.close();
+}
+
+void updateMobilDB() {
+	ofstream tulis("./data/mobil.txt", ios::trunc);
+	tulis << totalMobil << "\n";
+	NodeMobil* helperNode = mobilHead;
+	if (isMobilEmpty()) {
+		return;
+	}
+	do {
+		tulis << helperNode->data.platNomor << "\n" <<
+		helperNode->data.jenisMobil << "\n" <<
+		helperNode->data.brandMobil << "\n";
+		helperNode = helperNode->next;
+	} while (helperNode != NULL);
+	tulis.close();
+}
+
 void enqOrder(NodeOrder* newOrder) {
 	if (isOrderEmpty()) {
 		orderHead = newOrder;
@@ -221,6 +280,14 @@ bool isEmpty() {
 
 bool isOrderEmpty() {
 	if (orderHead == NULL) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool isMobilEmpty() {
+	if (mobilHead == NULL) {
 		return true;
 	} else {
 		return false;
@@ -404,8 +471,72 @@ void hapusDataSupirHandler(Node* nodeHapus) {
 	} while (nodeCari != head);
 }
 
+void addMobilHandler(NodeMobil* newMobil) {
+	if (isMobilEmpty()) {
+		mobilHead = newMobil;
+		mobilTail = newMobil;
+	} else {
+		mobilTail->next = newMobil;
+		newMobil->prev = mobilTail;
+		mobilTail = newMobil;
+	}
+	totalMobil++;
+	updateMobilDB();
+}
+
+void removeMobil() {
+	if (!isMobilEmpty()) { // let's hope that wouldn't happen
+		NodeMobil* del = mobilTail;
+		if (totalMobil == 1) {
+			// do I need to make a copy? actually not sure
+			mobilHead = NULL;
+			mobilTail = NULL;
+		} else {
+			mobilTail = mobilTail->prev;
+			mobilTail->next = NULL;
+		}
+		delete del;
+		totalMobil--;
+		updateMobilDB();
+	}
+}
+
+void addMobil() {
+	system("cls");
+	string platNomor, jenis, brand;
+	cout << "==== Tambah Mobil ====\n\nMasukkan plat nomor mobil\t> ";
+	getline(cin, platNomor);
+	if (!regex_match(platNomor, regex("^[A-Z]{1,2}\\s\\d{1,4}\\s[A-Z]{1,3}$"))) {
+		cout << "ERROR: Plat nomor tidak valdi!\n";
+		system("pause");
+		return menu(ADMIN_MENU);
+	}
+	cout << "Masukkan jenis mobil\t\t> ";
+	getline(cin, jenis);
+	cout << "Masukkan brand mobil\t\t> ";
+	getline(cin, brand);
+	NodeMobil* newMobil = new NodeMobil; // for readability's sake I'll put it down here
+	newMobil->data.platNomor = platNomor;
+	newMobil->data.jenisMobil = jenis;
+	newMobil->data.brandMobil = brand;
+	addMobilHandler(newMobil);
+	cout << "\nData berhasil dimasukkan!\nIngin menambahkan unit lain? (Y/N)";
+	char pil = '\0';
+	pil = optionHandler();
+	if (pil == 'Y' || pil == 'y') {
+		addMobil();
+	} else if (pil == 'N' || pil == 'n') {
+		menu(ADMIN_MENU);
+	}
+}
+
 void orderHandler(Node* supir) {
 	system("cls");
+	if (isMobilEmpty()) {
+		cout << "ERROR: Unit mobil sedang kosong, harap menunggu...\n";
+		system("pause");
+		return menu(USER_MENU);
+	}
 	string nama, tujuan;
 	cout << "==== Order ====\n\nMasukkan nama pelanggan\t> ";
 	getline(cin, nama);
@@ -420,6 +551,9 @@ void orderHandler(Node* supir) {
 	newOrder->data.nama = nama;
 	newOrder->data.tujuan = tujuan;
 	newOrder->data.supir = supir->data.nama;
+	// add plat nomor from mobilTail
+	newOrder->data.platNomor = mobilTail->data.platNomor;
+	removeMobil(); // and there you go, mobilnya lost forever WKWKWK
 	string orderId = idOrderGen(newOrder, supir->data.id); // ew, unclean args
 	newOrder->data.id = orderId;
 	enqOrder(newOrder);
@@ -571,7 +705,7 @@ void hapusSupir() {
 	} else {
 		cout << "\nSupir dengan data berikut akan dihapus:\n";
 		printSupir(cariSupir);
-		cout << "\n\nLanjutkan? (y/n)\n> ";
+		cout << "\n\nLanjutkan? (Y/N)\n> ";
 		char chC = 0;
 		while (!(chC == 'y' || chC == 'Y' || chC == 'n' || chC == 'N')) {
 			chC = optionHandler();
@@ -721,6 +855,7 @@ void tambahSupir() {
 	} else {
 		tail->next = newSupir;
 		head->prev = newSupir;
+		newSupir->prev = tail; // how did I not notice this
 		tail = newSupir;
 		newSupir->next = head;
 	}
@@ -762,7 +897,8 @@ void menu(MenuType pilMenu) {
 
 		case ADMIN_MENU: {
 			cout << "==== Dashboard Admin ====\n\n1. Mencari Data Supir\n" <<
-			"2. Menghapus Data Supir\n3. Mengubah Data Supir\n4. Menambah Data Supir\n5. Proses Pesanan\n0. Exit\n> ";
+			"2. Menghapus Data Supir\n3. Mengubah Data Supir\n4. Menambah Data Supir" <<
+			"\n5. Proses Pesanan\n6. Tambah Unit Mobil\n0. Exit\n> "; // unnecessarily long, ew
 			char pil = '\0';
 			pil = optionHandler();
 			switch (pil) {
@@ -781,6 +917,9 @@ void menu(MenuType pilMenu) {
 					break;
 				case '5':
 					prosesPesanan();
+					break;
+				case '6':
+					addMobil();
 					break;
 				case '0':
 					return menu(MAIN_MENU);
@@ -809,6 +948,7 @@ void quit() {
 void init() {
 	initDB();
 	initOrderDB();
+	initMobilDB();
 	menu(MAIN_MENU);
 }
 
